@@ -25,7 +25,6 @@ The repository to use when installing Apache (only used on RHEL/CentOS systems).
 The IP address and ports on which apache should be listening. Useful if you have another service (like a reverse proxy) listening on port 80 or 443 and need to change the defaults.
 
     apache_create_vhosts: true
-    apache_vhosts_filename: "vhosts.conf"
     apache_vhosts_template: "vhosts.conf.j2"
 
 If set to true, a vhosts file, managed by this role's variables (see below), will be created and placed in the Apache configuration folder. If set to false, you can place your own vhosts file into Apache's configuration folder and skip the convenient (but more basic) one added by this role. You can also override the template used and set a path to your own template, if you need to further customize the layout of your VirtualHosts.
@@ -34,22 +33,17 @@ If set to true, a vhosts file, managed by this role's variables (see below), wil
 
 On Debian/Ubuntu, a default virtualhost is included in Apache's configuration. Set this to `true` to remove that default virtualhost configuration file.
 
-    apache_global_vhost_settings: |
-      DirectoryIndex index.php index.html
-      # Add other global settings on subsequent lines.
-
-You can add or override global Apache configuration settings in the role-provided vhosts file (assuming `apache_create_vhosts` is true) using this variable. By default it only sets the DirectoryIndex configuration.
-
     apache_vhosts:
       # Additional optional properties: 'serveradmin, serveralias, extra_parameters'.
-      - servername: "local.dev"
+      - apache_vhost_name: "local.dev"
+        servername: "local.dev"
         documentroot: "/var/www/html"
 
 Add a set of properties per virtualhost, including `servername` (required), `documentroot` (required), `allow_override` (optional: defaults to the value of `apache_allow_override`), `options` (optional: defaults to the value of `apache_options`), `serveradmin` (optional), `serveralias` (optional) and `extra_parameters` (optional: you can add whatever additional configuration lines you'd like in here).
 
 Here's an example using `extra_parameters` to add a RewriteRule to redirect all requests to the `www.` site:
-
-      - servername: "www.local.dev"
+      - apache_vhost_name: "www.local.dev"
+        servername: "www.local.dev"
         serveralias: "local.dev"
         documentroot: "/var/www/html"
         extra_parameters: |
@@ -58,12 +52,11 @@ Here's an example using `extra_parameters` to add a RewriteRule to redirect all 
 
 The `|` denotes a multiline scalar block in YAML, so newlines are preserved in the resulting configuration file output.
 
-    apache_vhosts_ssl: []
+No SSL vhosts are configured by default, but you can add them using the same pattern as `apache_vhosts`, by adding `certificate_file`, like the following example:
 
-No SSL vhosts are configured by default, but you can add them using the same pattern as `apache_vhosts`, with a few additional directives, like the following example:
-
-    apache_vhosts_ssl:
-      - servername: "local.dev"
+    apache_vhosts:
+      - apache_vhost_name: "local.dev"
+        servername: "local.dev"
         documentroot: "/var/www/html"
         certificate_file: "/home/vagrant/example.crt"
         certificate_key_file: "/home/vagrant/example.key"
